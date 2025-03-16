@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read access to all documents
+    match /{document=**} {
+      allow read: if true;
+    }
+    
+    // Allow write access to crime reports if user is authenticated
+    match /crimeReports/{reportId} {
+      allow create: if request.auth != null || request.resource.data.isAnonymous == true;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // Allow write access to safe routes for authenticated users
+    match /safeRoutes/{routeId} {
+      allow create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Allow write access to users collection for authenticated users
+    match /users/{userId} {
+      allow create, update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
